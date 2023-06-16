@@ -4,20 +4,41 @@ from selenium.webdriver.common.by import By
 
 from bs4 import BeautifulSoup
 
+# Is this bad ting to do ?
+url = "https://www.indeed.com/jobs?q=aws+engineer&l=Florida&from=searchOnHP&vjk=52d6942ea02fcc27"
 
-driver = webdriver.Firefox()
-driver.get("https://samuelarant.com")
+def setFireFoxDriver():
+    driver = webdriver.Firefox()
+    driver.get(url)
+    return driver
 
-page_data = driver.page_source
-soup = BeautifulSoup(page_data, 'html.parser')
-data = soup.find_all("p", class_='indent-8')
-print(data)
+def getPageData(driver):
+    page_data = driver.page_source
+    soup = BeautifulSoup(page_data, 'html.parser')
+    # soup = soup.prettify() This turns soup into string
+    return soup
+
+def writeResultSetToFile(resultSet):
+    with open('output.txt', 'a') as f:
+        for item in resultSet:
+            f.write(item.text + '\n')
+
+def writeDataToFile(data):
+    with open('output.txt', 'w') as f:
+        f.write(data)
+
+def getJobTitles(soup):
+    job_titles = soup.select('span[id^="jobTitle"]')
+    return job_titles   
+
+def prettifySoup(soup):
+    return soup.prettifuy()
+    
+driver = setFireFoxDriver()
+page_soup = getPageData(driver)
+jobTitles = getJobTitles(page_soup)
+writeResultSetToFile(jobTitles)
 
 
-# assert "Python" in driver.title
-# elem = driver.find_element(By.NAME, "q")
-# elem.clear()
-# elem.send_keys("pycon")
-# elem.send_keys(Keys.RETURN)
-# assert "No results found." not in driver.page_source
-driver.close()
+## Close firefox
+driver.quit()
