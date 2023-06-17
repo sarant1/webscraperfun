@@ -15,7 +15,7 @@ def setFireFoxDriver():
 def getPageData(driver):
     page_data = driver.page_source
     soup = BeautifulSoup(page_data, 'html.parser')
-    # soup = soup.prettify() This turns soup into string
+    # soup = soup.prettify() # This turns soup into string
     return soup
 
 def writeResultSetToFile(resultSet):
@@ -31,14 +31,25 @@ def getJobTitles(soup):
     job_titles = soup.select('span[id^="jobTitle"]')
     return job_titles   
 
-def prettifySoup(soup):
-    return soup.prettifuy()
+def getJobListItems(soup):
+    return soup.find_all("ul", class_="jobsearch-ResultsList")
+
+def getJobListItem(soup):
+    return soup.find_all("li")
     
-driver = setFireFoxDriver()
-page_soup = getPageData(driver)
-jobTitles = getJobTitles(page_soup)
-writeResultSetToFile(jobTitles)
-
-
-## Close firefox
-driver.quit()
+def main():    
+    driver = setFireFoxDriver()
+    page_soup = getPageData(driver)
+    ul_of_job_containers = getJobListItems(page_soup)
+    job = getJobListItem(ul_of_job_containers[0])
+    print("List length: ", len(job))
+    writeDataToFile(job[0].prettify())
+    # for item in ul_of_job_containers:
+    #     job_title = getJobTitles(item)
+    #     print(job_title)
+    # driver.close()
+    # jobTitles = getJobTitles(page_soup)
+    # writeResultSetToFile(jobTitles)
+    
+main()
+    ## Close firefox
