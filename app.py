@@ -5,6 +5,7 @@ from selenium.webdriver.common.by import By
 from bs4 import BeautifulSoup
 
 import time
+import csv
 
 start_time = time.time()
 
@@ -26,6 +27,9 @@ def getPageData(driver):
     # soup = soup.prettify() # This turns soup into string
     return soup
 
+def removeCommas(string):
+    return string.replace(',', ' ')
+
 def extractJobId(job):
     div_element = job.find('div', class_='css-1m4cuuf e37uo190')
     if div_element is not None:
@@ -40,7 +44,7 @@ def extractDataPosted(job):
     if len(results) == 0:
         return "unknown"
     else:
-        return results[0].text
+        return removeCommas(results[0].text)
 
 def extractCompanyName(job):
     results = job.find_all(class_='companyName')
@@ -61,7 +65,7 @@ def extractJobLocation(job):
     if len(results) == 0:
         return "unknown"
     else:
-        return results[0].text
+        return removeCommas(results[0].text)
 
 def extractJobTitle(job):
     results = job.select('span[id^="jobTitle"]')
@@ -71,7 +75,7 @@ def extractJobTitle(job):
         return results[0].text
 
 def writeResultSetToFile(resultSet):
-    with open('output.txt', 'w') as f:
+    with open('output.csv', 'w') as f:
         for item in resultSet:
             item.prettify()
             print(item)
@@ -80,6 +84,13 @@ def writeResultSetToFile(resultSet):
 def writeStringDataToFile(data):
     with open('output.txt', 'a') as f:
         f.write(data)
+
+def writeCsvDataToFile(data):
+    with open('output.csv', 'w', newline='') as f:
+        print(data)
+        writer = csv.writer(f)
+        writer.writerows(data)
+        print("Data written to file")
 
 def getJobTitles(soup):
     job_titles = soup.select('span[id^="jobTitle"]')
@@ -101,22 +112,24 @@ def main():
 
     # this will grab all li items and put them into a result set (list)
     jobs = getJobListItem(ul_of_job_containers[0])
+
+    data = []
     
     for job in jobs:
-        job_title = extractJobTitle(job)
-        job_location = extractJobLocation(job)
-        job_company_name = extractCompanyName(job)
-        job_salary = extractJobSalary(job)
-        job_date = extractDataPosted(job)
-        job_id = extractJobId(job)
-        if job_id:
-            writeStringDataToFile(f'{job_id},{job_title},{job_location},{job_company_name},{job_salary},{job_date}\n')
+        job_data = []
+        job_data.append(extractJobId(job))
+        job_data.append(extractJobTitle(job))
+        job_data.append(extractJobLocation(job))
+        job_data.append(extractCompanyName(job))
+        job_data.append(extractJobSalary(job))
+        job_data.append(extractDataPosted(job))
+        if job_data[0]:
+            data.append(job_data)
     
+    writeCsvDataToFile(data)
     # Close firefox
     driver.close()
-    
 main()
-
 
 end_time = time.time()
 
