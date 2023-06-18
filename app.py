@@ -4,6 +4,10 @@ from selenium.webdriver.common.by import By
 
 from bs4 import BeautifulSoup
 
+import time
+
+start_time = time.time()
+
 # find_all returns a resultSet (list of tags)
 # find returns a single tag
 
@@ -21,6 +25,36 @@ def getPageData(driver):
     soup = BeautifulSoup(page_data, 'html.parser')
     # soup = soup.prettify() # This turns soup into string
     return soup
+
+def extractJobId(job):
+    div_element = job.find('div', class_='css-1m4cuuf e37uo190')
+    if div_element is not None:
+        data_jk = div_element.find('a')['data-jk']
+        return data_jk
+    else:
+        return None
+
+
+def extractDataPosted(job):
+    results = job.find_all(class_='date')
+    if len(results) == 0:
+        return "unknown"
+    else:
+        return results[0].text
+
+def extractCompanyName(job):
+    results = job.find_all(class_='companyName')
+    if len(results) == 0:
+        return "unknown"
+    else:
+        return results[0].text
+
+def extractJobSalary(job):
+    results = job.find_all(class_='salary-snippet-container')
+    if len(results) == 0:
+        return "unknown"
+    else:
+        return results[0].text
 
 def extractJobLocation(job):
     results = job.find_all(class_='companyLocation')
@@ -44,7 +78,7 @@ def writeResultSetToFile(resultSet):
             # f.write(item + '\n' + '-------------------' + '\n')
 
 def writeStringDataToFile(data):
-    with open('output.txt', 'w') as f:
+    with open('output.txt', 'a') as f:
         f.write(data)
 
 def getJobTitles(soup):
@@ -67,14 +101,23 @@ def main():
 
     # this will grab all li items and put them into a result set (list)
     jobs = getJobListItem(ul_of_job_containers[0])
-
+    
     for job in jobs:
         job_title = extractJobTitle(job)
         job_location = extractJobLocation(job)
-        if job_title:
-            print(f'{job_title},{job_location}')
+        job_company_name = extractCompanyName(job)
+        job_salary = extractJobSalary(job)
+        job_date = extractDataPosted(job)
+        job_id = extractJobId(job)
+        if job_id:
+            writeStringDataToFile(f'{job_id},{job_title},{job_location},{job_company_name},{job_salary},{job_date}\n')
     
+    # Close firefox
     driver.close()
     
 main()
-    ## Close firefox
+
+
+end_time = time.time()
+
+print(f"Execution time: {end_time - start_time} seconds")
