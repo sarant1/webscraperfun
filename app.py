@@ -1,6 +1,8 @@
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
+from selenium.webdriver.chrome.options import Options
+from selenium.common.exceptions import NoSuchElementException
 
 from bs4 import BeautifulSoup
 
@@ -8,6 +10,11 @@ import time
 import csv
 
 start_time = time.time()
+
+options = Options()
+options.add_argument("start-maximized")
+options.add_argument("disable-infobars")
+options.add_argument("--disable-extensions")
 
 # find_all returns a resultSet (list of tags)
 # find returns a single tag
@@ -86,11 +93,19 @@ def writeStringDataToFile(data):
         f.write(data)
 
 def writeCsvDataToFile(data):
-    with open('output.csv', 'w', newline='') as f:
-        print(data)
+    with open('output.csv', 'a', newline='') as f:
+        # print(data)
         writer = csv.writer(f)
         writer.writerows(data)
         print("Data written to file")
+
+def getCurrentJobIdsFromCsv():
+    with open('output.csv', 'r') as f:
+        reader = csv.reader(f)
+        current_job_ids = []
+        for row in reader:
+            current_job_ids.append(row[0])
+        return current_job_ids
 
 def getJobTitles(soup):
     job_titles = soup.select('span[id^="jobTitle"]')
@@ -102,16 +117,27 @@ def getJobListItems(soup):
 # soup must include a unordered list of job conatiners
 def getJobListItem(soup):
     return soup.find_all("li")
-    
+
+def navigateToNextPage(driver, page_number):
+    try:
+        next_page_button = driver.find_element("link text", f"{page_number + 1}")
+        next_page_button.click()
+        return True
+    except NoSuchElementException:
+        print("Cannot find new page")
+        return False
 def main():    
     driver = setFireFoxDriver()
     page_soup = getPageData(driver)
 
-    # ul encapsures all job li items
+    # ul encapsulates all job li items
     ul_of_job_containers = getJobListItems(page_soup)
 
     # this will grab all li items and put them into a result set (list)
     jobs = getJobListItem(ul_of_job_containers[0])
+
+    # Get current jobs ids so we can make sure we do not add duplicates to csv
+    current_job_ids = getCurrentJobIdsFromCsv()
 
     data = []
     
@@ -123,12 +149,13 @@ def main():
         job_data.append(extractCompanyName(job))
         job_data.append(extractJobSalary(job))
         job_data.append(extractDataPosted(job))
-        if job_data[0]:
+        if job_data[0] and job_data[0] not in current_job_ids:
             data.append(job_data)
     
     writeCsvDataToFile(data)
     # Close firefox
-    driver.close()
+    # driver.close()
+    navigateToNextPage(driver, 1)
 main()
 
 end_time = time.time()
