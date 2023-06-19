@@ -126,8 +126,10 @@ def navigateToNextPage(driver, page_number):
     except NoSuchElementException:
         print("Cannot find new page")
         return False
-def main():    
-    driver = setFireFoxDriver()
+def main(driver, page_number):
+    if page_number > 4:
+        return    
+    
     page_soup = getPageData(driver)
 
     # ul encapsulates all job li items
@@ -154,10 +156,13 @@ def main():
     
     writeCsvDataToFile(data)
     # Close firefox
-    # driver.close()
-    navigateToNextPage(driver, 1)
-main()
+    navigateToNextPage(driver, page_number + 1)
+    page_number += 1
+    main(driver, page_number)
 
+driver = setFireFoxDriver()
+main(driver, 1)
+driver.close()
 end_time = time.time()
 
 print(f"Execution time: {end_time - start_time} seconds")
