@@ -122,12 +122,11 @@ def navigateToNextPage(driver, page_number):
     try:
         next_page_button = driver.find_element("link text", f"{page_number + 1}")
         next_page_button.click()
-        return True
     except NoSuchElementException:
         print("Cannot find new page")
-        return False
+    
 def main(driver, page_number):
-    if page_number > 4:
+    if page_number > 6:
         return    
     
     page_soup = getPageData(driver)
@@ -161,7 +160,7 @@ def main(driver, page_number):
     main(driver, page_number)
 
 driver = setFireFoxDriver()
-main(driver, 1)
+main(driver=driver, page_number=1)
 driver.close()
 end_time = time.time()
 
