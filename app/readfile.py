@@ -5,6 +5,10 @@ from cleaners import *
 df = pd.read_csv('output.csv', sep=',', header=None, names=['Job ID', 'Job Title', 'Company Location', 'Company Name', 'Job Salary', 'Date Posted'])
 
 
-value = df.loc[0]['Job Salary']
-print(cleanSalary(value))
+df.loc[9]['Job Salary'] = cleanSalary(df.loc[9]['Job Salary'])
+
+df['Job Salary'] = df['Job Salary'].apply(cleanSalary)
+
+df.to_csv('updated_output.csv', index=False)
+
 # print(df.to_string())
