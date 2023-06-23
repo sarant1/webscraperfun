@@ -1,10 +1,12 @@
 import re
 
-
 # ~1750 hours per year worked
 
 def cleanSalary(salary):
 
+    if salary == "uknown":
+        return "unkown"
+    
     # Looking for hourly or yearly in the string
     hourly_rate = re.search(r'hour', salary)
     yearly_rate = re.search(r'year', salary)
@@ -21,5 +23,21 @@ def cleanSalary(salary):
         salary = '${:,.2f}'.format(float(salary) * 1750)
     return salary 
 
+
+def cleanDatePosted(date_posted):
+
+    if date_posted == "unknown":
+        return "unknown"
+
+    days_ago = re.search(r'\d+', date_posted)
+    just_posted = re.search(r'Just', date_posted)
+    posted_today = re.search(r'Today', date_posted)
+
+    if days_ago:
+        date_posted = days_ago.group(0)
+    elif just_posted or posted_today:
+        return "0"
+    
+    return date_posted
 
 

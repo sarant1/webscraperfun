@@ -9,6 +9,10 @@ from bs4 import BeautifulSoup
 import time
 import csv
 
+
+# Put the amount of pages you want to scrape here
+pages_to_scrape = 10
+
 start_time = time.time()
 
 options = Options()
@@ -34,9 +38,6 @@ def getPageData(driver):
     # soup = soup.prettify() # This turns soup into string
     return soup
 
-def removeCommas(string):
-    return string.replace(',', ' ')
-
 def extractJobId(job):
     div_element = job.find('div', class_='css-1m4cuuf e37uo190')
     if div_element is not None:
@@ -51,7 +52,7 @@ def extractDataPosted(job):
     if len(results) == 0:
         return "unknown"
     else:
-        return removeCommas(results[0].text)
+        return results[0].text
 
 def extractCompanyName(job):
     results = job.find_all(class_='companyName')
@@ -72,7 +73,7 @@ def extractJobLocation(job):
     if len(results) == 0:
         return "unknown"
     else:
-        return removeCommas(results[0].text)
+        return results[0].text
 
 def extractJobTitle(job):
     results = job.select('span[id^="jobTitle"]')
@@ -125,8 +126,8 @@ def navigateToNextPage(driver, page_number):
     except NoSuchElementException:
         print("Cannot find new page")
     
-def main(driver, page_number):
-    if page_number > 6:
+def main(driver, page_number, pages_to_scrape=3):
+    if page_number > pages_to_scrape:
         return    
     
     page_soup = getPageData(driver)
@@ -157,10 +158,14 @@ def main(driver, page_number):
     # Close firefox
     navigateToNextPage(driver, page_number + 1)
     page_number += 1
-    main(driver, page_number)
+    main(driver, page_number, pages_to_scrape)
 
 driver = setFireFoxDriver()
-main(driver=driver, page_number=1)
+main(
+    driver=driver, 
+    page_number=1, 
+    pages_to_scrape=pages_to_scrape
+    )
 driver.close()
 end_time = time.time()
 
