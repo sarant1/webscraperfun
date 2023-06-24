@@ -8,6 +8,7 @@ from bs4 import BeautifulSoup
 
 import time
 import csv
+import pandas as pd
 
 
 # Put the amount of pages you want to scrape here
@@ -100,6 +101,10 @@ def writeCsvDataToFile(data):
         writer.writerows(data)
         print("Data written to file")
 
+def writeDataFrameToFile(data):
+    df = pd.DataFrame(data, columns=['Job ID', 'Job Title', 'Company Name', 'Location', 'Date Posted', 'Salary'])
+    df.to_csv('output.csv', mode='a', header=False, index=False)
+
 def getCurrentJobIdsFromCsv():
     with open('output.csv', 'r') as f:
         reader = csv.reader(f)
@@ -154,7 +159,8 @@ def main(driver, page_number, pages_to_scrape=3):
         if job_data[0] and job_data[0] not in current_job_ids:
             data.append(job_data)
     
-    writeCsvDataToFile(data)
+    # writeCsvDataToFile(data)
+    writeDataFrameToFile(data)
     # Close firefox
     navigateToNextPage(driver, page_number + 1)
     page_number += 1
